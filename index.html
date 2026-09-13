@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Mastery Platform</title>
+    
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1', // Indigo 500
+                        secondary: '#10b981', // Emerald 500
+                        accent: '#8b5cf6', // Violet 500
+                        darkbg: '#0f172a', // Slate 900
+                        darkcard: '#1e293b', // Slate 800
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        pre { overflow-x: auto; font-size: 0.875rem; }
+        code { font-family: 'Courier New', Courier, monospace; }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* 3D Flip Card CSS */
+        .flip-card {
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .flip-card-back {
+            transform: rotateY(180deg);
+            overflow-y: auto; /* Allow scrolling for long answers */
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-darkbg dark:text-slate-100 min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const flashcardsData = [
+            { topic: "NumPy", front: "Create an array of evenly spaced values (number of samples)", back: "np.linspace(start, stop, num_samples)\nExample: np.linspace(0, 2, 9)" },
+            { topic: "Pandas", front: "Spread rows into columns (reshaping)", back: "df.pivot(columns='var', values='val')" },
+            { topic: "Algorithms", front: "Worst-Case Time Complexity of Quicksort", back: "O(n^2)\n(Best/Average are Ω(n log n) and Θ(n log n))" },
+            { topic: "Algorithms", front: "Worst-Case Space Complexity of Merge Sort", back: "O(n)" },
+            { topic: "Pandas", front: "Replace all NA/null data with a specific value", back: "df.fillna(value)" },
+            { topic: "Python Basics", front: "Difference between list.sort() and reversed(list)", back: "list.sort() sorts in-place. reversed() returns an iterator without modifying the original." },
+            { topic: "NumPy", front: "Stack arrays vertically (row-wise)", back: "np.vstack((a, b))\nOR\nnp.concatenate((a,b), axis=0)" },
+            { topic: "Pandas", front: "Calculate the size of each group", back: "df.groupby(by='col').size()" },
+            { topic: "Python Basics", front: "Retrieve a value from a dictionary safely", back: "dict.get('key', 'default_value')" },
+            { topic: "NumPy", front: "What does the `shape` attribute return?", back: "A tuple representing the array dimensions (e.g., (rows, columns))." }
+        ];
+
+        const allQuestions = {
+            part1: [
+                { q: "What is the correct syntax to output 'Hello World' in Python?", options: ["echo 'Hello World'", "p('Hello World')", "print('Hello World')", "echo('Hello World')"], a: 2, exp: "print() is the built-in function to output text to the console." },
+                { q: "How do you insert COMMENTS in Python code?", options: ["// This is a comment", "# This is a comment", "/* This is a comment */", "-- This is a comment"], a: 1, exp: "Python uses the hash character (#) for single-line comments." },
+                { q: "Which one is NOT a legal variable name?", options: ["my_var = 20", "_myvar = 20", "my-var = 20", "myvar = 20"], a: 2, exp: "Variable names cannot contain hyphens (-)." },
+                { q: "How do you create a variable with the numeric value 5?", options: ["x = 5", "x = int(5)", "Both are correct", "Neither are correct"], a: 2, exp: "Both work, though x = 5 is standard as Python is dynamically typed." },
+                { q: "What is the correct file extension for Python files?", options: [".pyt", ".pt", ".py", ".pyth"], a: 2, exp: "Python files end with the .py extension." },
+                { q: "How do you create a variable with the floating number 2.8?", options: ["x = 2.8", "x = float(2.8)", "Both are correct", "Neither are correct"], a: 2, exp: "Both create a float, but x = 2.8 is standard." },
+                { q: "What is the correct syntax to output the type of a variable or object in Python?", options: ["print(typeof(x))", "print(typeof x)", "print(type(x))", "print(typeOf(x))"], a: 2, exp: "type() is the built-in function to determine an object's type." },
+                { q: "What is the correct way to create a function in Python?", options: ["def myFunction():", "create myFunction():", "function myFunction():", "def myFunction:"], a: 0, exp: "Functions are defined using the 'def' keyword followed by parentheses and a colon." },
+                { q: "In Python, 'Hello', is the same as \"Hello\"", options: ["True", "False"], a: 0, exp: "String literals in python are surrounded by either single quotation marks, or double quotation marks." },
+                { q: "What is the correct syntax to return the first character in a string s?", options: ["x = s[0]", "x = sub(s, 0, 1)", "x = s.get(0)", "x = s.slice(1)"], a: 0, exp: "Python is zero-indexed, so s[0] gets the first character." },
+                { q: "Which method can be used to remove any whitespace from both the beginning and the end of a string?", options: ["ptrim()", "strip()", "trim()", "len()"], a: 1, exp: "The strip() method removes leading and trailing whitespace." },
+                { q: "Which method can be used to return a string in upper case letters?", options: ["upperCase()", "toUpperCase()", "uppercase()", "upper()"], a: 3, exp: "The upper() method returns an upper-cased copy of the string." },
+                { q: "Which method can be used to replace parts of a string?", options: ["replaceString()", "switch()", "replace()", "repl()"], a: 2, exp: "The replace() method replaces a specified phrase with another specified phrase." },
+                { q: "Which operator is used to multiply numbers?", options: ["*", "x", "%", "#"], a: 0, exp: "The asterisk (*) is the multiplication operator." },
+                { q: "Which operator can be used to compare two values?", options: ["=", "><", "==", "<>"], a: 2, exp: "The double equals (==) is the equality comparison operator." },
+                { q: "Which of these collections defines a LIST?", options: ["{\"name\": \"apple\", \"color\": \"green\"}", "[\"apple\", \"banana\", \"cherry\"]", "(\"apple\", \"banana\", \"cherry\")", "{\"apple\", \"banana\", \"cherry\"}"], a: 1, exp: "Lists are created using square brackets []." },
+                { q: "Which of these collections defines a TUPLE?", options: ["{\"name\": \"apple\", \"color\": \"green\"}", "[\"apple\", \"banana\", \"cherry\"]", "(\"apple\", \"banana\", \"cherry\")", "{\"apple\", \"banana\", \"cherry\"}"], a: 2, exp: "Tuples are created using parentheses ()." },
+                { q: "Which of these collections defines a SET?", options: ["{\"name\": \"apple\", \"color\": \"green\"}", "[\"apple\", \"banana\", \"cherry\"]", "(\"apple\", \"banana\", \"cherry\")", "{\"apple\", \"banana\", \"cherry\"}"], a: 3, exp: "Sets are created using curly braces {} with single values." },
+                { q: "Which of these collections defines a DICTIONARY?", options: ["{\"name\": \"apple\", \"color\": \"green\"}", "[\"apple\", \"banana\", \"cherry\"]", "(\"apple\", \"banana\", \"cherry\")", "{\"apple\", \"banana\", \"cherry\"}"], a: 0, exp: "Dictionaries are created using curly braces {} with key:value pairs." },
+                { q: "Which collection is ordered, changeable, and allows duplicate members?", options: ["List", "Tuple", "Set", "Dictionary"], a: 0, exp: "Lists are ordered, mutable, and allow duplicates." },
+                { q: "Which collection does not allow duplicate members?", options: ["Set", "List", "Tuple", "All allow duplicates"], a: 0, exp: "Sets cannot have two items with the same value." },
+                { q: "How do you start a while loop?", options: ["while x > y {", "x > y while {", "while x > y:", "while (x > y)"], a: 2, exp: "While loops use a condition followed by a colon." },
+                { q: "How do you start a for loop to iterate over a list 'fruits'?", options: ["for x in fruits:", "for each x in fruits:", "for (x=0; x<fruits.length; x++)", "loop fruits:"], a: 0, exp: "Python uses 'for element in iterable:' syntax." },
+                { q: "Which statement is used to stop a loop?", options: ["return", "exit", "stop", "break"], a: 3, exp: "The break statement exits the innermost enclosing loop." },
+                { q: "You want to check if the value 'apple' is present in a list 'fruits'.", options: ["if 'apple' in fruits:", "if fruits.has('apple'):", "if fruits.contains('apple'):", "if 'apple' > fruits:"], a: 0, exp: "The 'in' operator is used to check for membership." },
+                { q: "What does the append() method do to a list?", options: ["Adds an element at the beginning", "Adds an element at the end", "Sorts the list", "Removes an element"], a: 1, exp: "append() adds a single item to the end of the list." },
+                { q: "How do you remove a specific key-value pair from a dictionary 'd' with key 'k'?", options: ["d.remove('k')", "del d['k']", "d.delete('k')", "d.pop('k')"], a: 1, exp: "del d['k'] or d.pop('k') removes the item. Option 2 is valid syntax." },
+                { q: "What is the output of bool(\"False\")?", options: ["True", "False", "None", "Error"], a: 0, exp: "Any non-empty string evaluates to True in Python." },
+                { q: "Which is the correct way to cast an integer x=5 to a string?", options: ["x.toString()", "str(x)", "string(x)", "cast(x, str)"], a: 1, exp: "The str() function converts values to strings." },
+                { q: "What is the result of 10 // 3?", options: ["3.33", "3", "4", "1"], a: 1, exp: "The // operator performs floor division, returning the integer part." }
+            ],
+            part2: [
+                { q: "If you have a function def my_func(a, b=2):, what happens if you call my_func(5)?", options: ["Error", "a=5, b=2", "a=2, b=5", "a=None, b=2"], a: 1, exp: "b has a default value of 2, which is used if not provided." },
+                { q: "What is a Class in Object-Oriented Programming?", options: ["A function that returns multiple values", "A blueprint for creating objects", "A built-in data type like list", "A loop structure"], a: 1, exp: "Classes act as templates or blueprints to create objects." },
+                { q: "What is the correct syntax to create an object 'p' of a class named 'Person'?", options: ["p = new Person()", "p = Person()", "Person p = new Person()", "p = create Person()"], a: 1, exp: "In Python, you call the class name like a function to create an instance." },
+                { q: "What is the purpose of the __init__ method in a class?", options: ["To delete the object", "To initialize class attributes when instantiated", "To print the object", "To inherit from another class"], a: 1, exp: "__init__ is the constructor method called when an object is created." },
+                { q: "What keyword is used inside a class method to refer to the instance of the object itself?", options: ["this", "it", "self", "me"], a: 2, exp: "'self' is the standard convention to represent the instance of the class." },
+                { q: "What does 'Inheritance' mean in OOP?", options: ["Creating multiple objects from one class", "A class inheriting attributes and methods from another class", "Hiding internal data of an object", "Functions calling themselves"], a: 1, exp: "Inheritance allows a child class to acquire properties of a parent class." },
+                { q: "Which term describes a function that calls itself?", options: ["Iteration", "Overloading", "Polymorphism", "Recursion"], a: 3, exp: "Recursion is the process in which a function calls itself directly or indirectly." },
+                { q: "Why must a recursive function have a 'base case'?", options: ["To optimize memory", "To return a string", "To prevent infinite loops", "To sort the output"], a: 2, exp: "The base case provides a condition to stop the recursion." },
+                { q: "What is the average time complexity of Bubble Sort?", options: ["O(n)", "O(n log n)", "O(n^2)", "O(1)"], a: 2, exp: "Bubble sort requires nested loops, leading to O(n^2) average and worst-case time." },
+                { q: "Why is Merge Sort generally preferred over Bubble Sort for large datasets?", options: ["It uses less memory", "It is easier to code", "It has a time complexity of O(n log n)", "It sorts in place"], a: 2, exp: "Merge Sort's divide-and-conquer approach makes it much faster (O(n log n)) than O(n^2) algorithms." },
+                { q: "Which sorting algorithm works by continuously splitting the list in half until single elements remain, then merging them back in order?", options: ["Quicksort", "Bubble Sort", "Insertion Sort", "Merge Sort"], a: 3, exp: "This describes the divide-and-conquer strategy of Merge Sort." },
+                { q: "What does 'Polymorphism' refer to in Python?", options: ["Functions with many arguments", "The ability to use a common interface for multiple forms (data types)", "Hiding variables", "A type of loop"], a: 1, exp: "Polymorphism allows different classes to define methods that share the same name." },
+                { q: "How do you open a file named 'data.txt' for reading?", options: ["f = open('data.txt', 'r')", "f = read('data.txt')", "f = open('data.txt', 'read')", "f = file('data.txt', 'r')"], a: 0, exp: "open() with the 'r' mode opens a file for reading." },
+                { q: "What is the output of print(len(\"Hello\"))?", options: ["4", "5", "6", "Error"], a: 1, exp: "len() returns the number of items in an object, here 5 characters." },
+                { q: "Which keyword is used to handle exceptions in Python?", options: ["catch", "except", "handle", "error"], a: 1, exp: "try...except blocks are used for exception handling." },
+                { q: "What does the 'pass' statement do?", options: ["Exits the program", "Skips to the next loop iteration", "Does nothing (a null operation)", "Throws an error"], a: 2, exp: "pass is a placeholder used when a statement is syntactically required but no code needs to be executed." },
+                { q: "How can you import a specific function 'my_func' from a module 'my_mod'?", options: ["import my_func from my_mod", "from my_mod import my_func", "import my_mod.my_func", "include my_func from my_mod"], a: 1, exp: "'from module import function' is the correct syntax." },
+                { q: "What is a lambda function in Python?", options: ["A built-in math function", "A small anonymous function", "A method inside a class", "A recursive function"], a: 1, exp: "Lambda functions are small, anonymous functions defined with the lambda keyword." },
+                { q: "Which data structure operates on a Last-In, First-Out (LIFO) principle?", options: ["Queue", "Linked List", "Stack", "Tree"], a: 2, exp: "Stacks are LIFO (like a stack of plates)." },
+                { q: "Which data structure operates on a First-In, First-Out (FIFO) principle?", options: ["Queue", "Linked List", "Stack", "Dictionary"], a: 0, exp: "Queues are FIFO (like a line at a grocery store)." },
+                { q: "In a Linked List, what does a 'node' typically contain?", options: ["Just data", "Data and a pointer to the next node", "Multiple arrays", "A dictionary of keys"], a: 1, exp: "Nodes contain the data and a reference (pointer) to the next node." },
+                { q: "What is the space complexity of Merge Sort?", options: ["O(1)", "O(log n)", "O(n)", "O(n^2)"], a: 2, exp: "Merge sort requires temporary arrays to hold the divided sublists, leading to O(n) space." },
+                { q: "What is the best case time complexity for Bubble Sort (if the list is already sorted)?", options: ["O(1)", "O(n)", "O(n log n)", "O(n^2)"], a: 1, exp: "If optimized with a flag, Bubble sort can exit early if no swaps are made in the first pass, taking O(n) time." },
+                { q: "What does Encapsulation mean in OOP?", options: ["Inheriting from multiple classes", "Bundling data and methods that work on that data within one unit, restricting direct access", "Functions having the same name", "Creating instances"], a: 1, exp: "Encapsulation hides the internal state of an object and requires all interaction to be performed through an object's methods." },
+                { q: "Which method is called when you use the built-in print() function on an object?", options: ["__print__", "__str__", "__display__", "__out__"], a: 1, exp: "The __str__ method defines the string representation of an object." },
+                { q: "If class B inherits from class A, how can B call a method from A?", options: ["parent.method()", "A.method(self)", "super().method()", "Both B and C are correct"], a: 3, exp: "Both super().method() and A.method(self) work, though super() is generally preferred." },
+                { q: "What does *args allow a function to do?", options: ["Accept keyword arguments", "Accept an arbitrary number of positional arguments", "Return multiple values", "Accept lists only"], a: 1, exp: "*args gathers remaining positional arguments into a tuple." },
+                { q: "What does **kwargs allow a function to do?", options: ["Accept an arbitrary number of keyword arguments", "Return dictionaries", "Unpack lists", "Sort arguments"], a: 0, exp: "**kwargs gathers remaining keyword arguments into a dictionary." },
+                { q: "Which function can be used to iterate over a sequence while keeping track of the index?", options: ["zip()", "map()", "enumerate()", "filter()"], a: 2, exp: "enumerate() returns pairs of (index, value) from an iterable." },
+                { q: "What is the primary disadvantage of recursion?", options: ["It requires too much code", "It is always slower than loops", "It can lead to Stack Overflow errors if the recursion depth is too high", "It cannot return values"], a: 2, exp: "Each recursive call consumes stack memory. Too many calls exceed the maximum recursion depth." }
+            ],
+            part3: [
+                { q: "What does NumPy stand for?", options: ["Number Python", "Numerical Python", "Numerous Python", "Nothing, it's just a name"], a: 1, exp: "NumPy stands for Numerical Python." },
+                { q: "How do you create a 1D array in NumPy?", options: ["np.array(1, 2, 3)", "np.create([1, 2, 3])", "np.array([1, 2, 3])", "np.list([1, 2, 3])"], a: 2, exp: "You pass a list to np.array() to create an array." },
+                { q: "How do you check the number of dimensions of a NumPy array?", options: ["arr.dims", "arr.ndim", "arr.shape", "arr.size"], a: 1, exp: "The ndim attribute returns the number of dimensions." },
+                { q: "What is the correct syntax to print the first item of a NumPy array arr?", options: ["print(arr[1])", "print(arr(0))", "print(arr[0])", "print(arr.get(0))"], a: 2, exp: "Arrays are zero-indexed, so arr[0] gets the first item." },
+                { q: "Which NumPy function returns an array of evenly spaced values over a specified interval (using step size)?", options: ["np.linspace()", "np.arange()", "np.interval()", "np.space()"], a: 1, exp: "np.arange(start, stop, step) uses a step size." },
+                { q: "How do you find the common values between two NumPy arrays a and b?", options: ["np.common(a, b)", "np.intersect1d(a, b)", "np.match(a, b)", "np.join(a, b)"], a: 1, exp: "np.intersect1d finds the intersection of two arrays." },
+                { q: "What does Pandas stand for?", options: ["Panel Data", "Python Data Analysis", "Both A and B", "Neither"], a: 2, exp: "Pandas is derived from 'Panel Data' and is used for Python Data Analysis." },
+                { q: "Which method is used to read a CSV file into a Pandas DataFrame?", options: ["pd.read_csv('file.csv')", "pd.open_csv('file.csv')", "pd.load_csv('file.csv')", "pd.get_csv('file.csv')"], a: 0, exp: "pd.read_csv() is the standard function for reading CSVs." },
+                { q: "How do you view the first 5 rows of a DataFrame df?", options: ["df.first(5)", "df.top()", "df.head()", "df.show(5)"], a: 2, exp: "df.head() returns the first 5 rows by default." },
+                { q: "Which method returns a summary of statistics for numeric columns in a DataFrame?", options: ["df.summary()", "df.stats()", "df.describe()", "df.info()"], a: 2, exp: "df.describe() provides count, mean, std, min, max, and quartiles." },
+                { q: "How do you remove rows with missing values (NaN) in a DataFrame?", options: ["df.remove_nan()", "df.drop_null()", "df.dropna()", "df.clean()"], a: 2, exp: "df.dropna() removes rows (or columns) containing missing values." },
+                { q: "How do you fill missing values (NaN) with 0 in a DataFrame?", options: ["df.fill(0)", "df.replace_nan(0)", "df.fillna(0)", "df.set_null(0)"], a: 2, exp: "df.fillna() replaces NA/NaN values with a specified value." },
+                { q: "Which method removes duplicate rows from a DataFrame?", options: ["df.unique()", "df.remove_duplicates()", "df.drop_duplicates()", "df.clean_duplicates()"], a: 2, exp: "df.drop_duplicates() removes duplicate rows." },
+                { q: "How do you access a specific column named 'Age' in a DataFrame df?", options: ["df.Age", "df['Age']", "Both A and B", "Neither"], a: 2, exp: "You can use dot notation (if the name has no spaces) or bracket notation." },
+                { q: "Which method is used to group data based on a column in Pandas?", options: ["df.group()", "df.groupby()", "df.aggregate()", "df.cluster()"], a: 1, exp: "df.groupby() splits the data into groups based on some criteria." },
+                { q: "What does pd.concat([df1, df2]) do?", options: ["Joins data based on matching columns (like SQL join)", "Appends rows of df2 below df1", "Multiplies the DataFrames", "Creates a MultiIndex"], a: 1, exp: "concat() stacks DataFrames vertically by default." },
+                { q: "Which Pandas function is similar to a SQL INNER JOIN?", options: ["pd.concat()", "pd.append()", "pd.merge()", "pd.join()"], a: 2, exp: "pd.merge() performs database-style join operations." },
+                { q: "What library is Matplotlib primarily based on/designed to work with?", options: ["Django", "Flask", "NumPy", "TensorFlow"], a: 2, exp: "Matplotlib works closely with NumPy arrays." },
+                { q: "Which Matplotlib function creates a basic line plot?", options: ["plt.line()", "plt.plot()", "plt.draw()", "plt.graph()"], a: 1, exp: "plt.plot() is the primary function for line graphs." },
+                { q: "How do you add a title to a Matplotlib plot?", options: ["plt.title('My Title')", "plt.header('My Title')", "plt.name('My Title')", "plt.set_title('My Title')"], a: 0, exp: "plt.title() sets the title for the current axes." },
+                { q: "Which Seaborn function is best for visualizing the distribution of a single numerical variable?", options: ["sns.scatterplot()", "sns.histplot()", "sns.heatmap()", "sns.barplot()"], a: 1, exp: "sns.histplot() plots univariate distributions." },
+                { q: "What is the advantage of using Seaborn over raw Matplotlib?", options: ["It is faster", "It requires fewer lines of code to create attractive statistical graphics", "It handles 3D rendering better", "It is built in C++"], a: 1, exp: "Seaborn provides a high-level interface for drawing attractive statistical graphics." },
+                { q: "If df is a DataFrame, what does df.shape return?", options: ["Number of columns", "Number of rows", "A tuple of (rows, columns)", "Total number of cells"], a: 2, exp: "shape returns a tuple representing the dimensionality of the DataFrame." },
+                { q: "How do you change the data type of a Pandas Series to integer?", options: ["series.int()", "series.to_int()", "series.astype(int)", "series.cast(int)"], a: 2, exp: "astype() is used to cast a pandas object to a specified dtype." },
+                { q: "In NumPy, what is the output of np.zeros((2,3))?", options: ["A 2x3 array of ones", "A 3x2 array of zeros", "A 2x3 array of zeros", "An error"], a: 2, exp: "It creates a matrix with 2 rows and 3 columns filled with 0.0." },
+                { q: "How do you transpose a DataFrame df?", options: ["df.transpose()", "df.T", "Both A and B", "Neither"], a: 2, exp: "Both .T and .transpose() swap rows and columns." },
+                { q: "Which NumPy method changes the shape of an array without changing its data?", options: ["arr.resize()", "arr.reshape()", "arr.recast()", "arr.change()"], a: 1, exp: "reshape() gives a new shape to an array without changing its data." },
+                { q: "What does the df.info() method provide?", options: ["Summary statistics (mean, std)", "Column names, non-null counts, and data types", "Only the column names", "The first 10 rows"], a: 1, exp: "info() prints information about a DataFrame including the index dtype and columns, non-null values and memory usage." },
+                { q: "In Matplotlib, how do you display the plot on the screen?", options: ["plt.display()", "plt.render()", "plt.show()", "plt.view()"], a: 2, exp: "plt.show() displays all open figures." },
+                { q: "Which Seaborn function shows the relationship between two variables, often with a regression line?", options: ["sns.boxplot()", "sns.pairplot()", "sns.lmplot()", "sns.violinplot()"], a: 2, exp: "lmplot() plots data and regression model fits across a FacetGrid." }
+            ]
+        };
+
+        const revisionQuestions = {
+            part1: [
+                { q: "What is the output of print(2 ** 3)?", options: ["6", "8", "9", "Error"], a: 1, exp: "The ** operator is used for exponentiation (2 to the power of 3)." },
+                { q: "Which method adds an element to a set?", options: [".append()", ".insert()", ".add()", ".push()"], a: 2, exp: "Sets use the .add() method to insert new unique elements." },
+                { q: "What does list.pop() do if no index is specified?", options: ["Removes the first element", "Removes a random element", "Removes and returns the last element", "Throws an error"], a: 2, exp: "By default, pop() removes and returns the item at the end of the list." },
+                { q: "What is the result of 'a' in 'banana'?", options: ["True", "False", "1", "3"], a: 0, exp: "The 'in' operator checks if a substring exists within a string, returning a boolean." },
+                { q: "How do you find the number of elements in a list?", options: ["list.size()", "size(list)", "len(list)", "list.length"], a: 2, exp: "The built-in len() function returns the number of items in an object." },
+                { q: "Which of the following is true about Tuples?", options: ["They are mutable", "They are declared with []", "They are immutable", "They do not allow duplicates"], a: 2, exp: "Tuples are ordered and unchangeable (immutable) sequences." },
+                { q: "Can a Python dictionary have a list as a key?", options: ["Yes", "No"], a: 1, exp: "Dictionary keys must be immutable (hashable). Lists are mutable, so they cannot be keys." },
+                { q: "What is the output of bool(0)?", options: ["True", "False", "None", "Error"], a: 1, exp: "The integer 0 evaluates to False in boolean context. All other numbers evaluate to True." },
+                { q: "Which operator performs floor division?", options: ["/", "//", "%", "**"], a: 1, exp: "The // operator divides and rounds down to the nearest whole number." },
+                { q: "How do you skip the current iteration in a loop and move to the next?", options: ["break", "pass", "continue", "skip"], a: 2, exp: "The continue statement stops the current iteration and jumps to the next iteration of the loop." },
+                { q: "What is the output of type({})?", options: ["<class 'set'>", "<class 'dict'>", "<class 'list'>", "<class 'tuple'>"], a: 1, exp: "Empty curly braces {} create an empty dictionary, not a set." },
+                { q: "Which string method splits a string into a list?", options: [".divide()", ".list()", ".split()", ".separate()"], a: 2, exp: "The .split() method divides a string based on a specified delimiter (default is space)." },
+                { q: "What does the .items() method of a dictionary return?", options: ["Only keys", "Only values", "List of key-value tuples", "A set of keys"], a: 2, exp: ".items() provides a view object displaying a list of dictionary's (key, value) tuple pairs." },
+                { q: "How do you combine two sets A and B?", options: ["A + B", "A.union(B)", "A.combine(B)", "A & B"], a: 1, exp: "The .union() method or the | operator combines the unique elements of two sets." },
+                { q: "What does the enumerate() function do?", options: ["Counts list items", "Adds a counter to an iterable", "Sorts an iterable", "Reverses a sequence"], a: 1, exp: "enumerate() yields pairs containing a count (from start, which defaults to 0) and a value yielded by the iterable argument." },
+                { q: "What will print(\"Python\"[-1]) output?", options: ["P", "n", "o", "Error"], a: 1, exp: "Negative indexing starts from the end. -1 refers to the last character." },
+                { q: "Which statement checks if two variables point to the same object in memory?", options: ["x == y", "x = y", "x is y", "x equals y"], a: 2, exp: "The 'is' operator checks for object identity (same memory location), whereas '==' checks for equal values." },
+                { q: "What is the result of 5 % 2?", options: ["2.5", "2", "1", "0"], a: 2, exp: "The modulo operator % returns the remainder of the division. 5 divided by 2 leaves a remainder of 1." },
+                { q: "How do you forcefully terminate a while loop?", options: ["stop", "exit", "return", "break"], a: 3, exp: "The break statement terminates the loop entirely and executes the next statement after the loop." },
+                { q: "What does the range(5) function generate?", options: ["0, 1, 2, 3, 4, 5", "1, 2, 3, 4, 5", "0, 1, 2, 3, 4", "1, 2, 3, 4"], a: 2, exp: "range(stop) generates numbers from 0 up to, but not including, the stop number." },
+                { q: "Which list method reverses the elements in-place?", options: ["list.reverse()", "reversed(list)", "list.invert()", "list[::-1]"], a: 0, exp: "list.reverse() modifies the original list. reversed(list) and slicing return new sequences." },
+                { q: "How do you remove all items from a dictionary?", options: ["dict.delete()", "dict.remove()", "dict.clear()", "del dict"], a: 2, exp: "The .clear() method empties the dictionary of all key-value pairs." },
+                { q: "What is a characteristic of Python sets?", options: ["Ordered", "Indexed", "Allow duplicates", "Unordered and unindexed"], a: 3, exp: "Sets are unordered collections of unique elements and do not support indexing or slicing." },
+                { q: "What will print(bool(\"\")) output?", options: ["True", "False", "None", "Error"], a: 1, exp: "An empty string evaluates to False in a boolean context." },
+                { q: "How do you unpack a tuple like t = (1, 2)?", options: ["a, b = t", "a = t[0]; b = t[1]", "Both are valid", "Neither"], a: 2, exp: "Python allows direct unpacking (a, b = t), though manual indexing also works." },
+                { q: "Which keyword is used for logical AND?", options: ["&&", "and", "&", "AND"], a: 1, exp: "Python uses the word 'and' for logical AND operations between booleans." },
+                { q: "What is an f-string?", options: ["A fast string", "A string containing file paths", "A formatted string literal", "A function string"], a: 2, exp: "f-strings (f'...') provide a concise and convenient way to embed python expressions inside string literals." },
+                { q: "Can a list contain different data types?", options: ["Yes", "No"], a: 0, exp: "Python lists are heterogeneous; they can contain integers, strings, objects, etc., all in the same list." },
+                { q: "What is the output of print('Hello' * 3)?", options: ["Hello 3", "HelloHelloHello", "Error", "Hello*3"], a: 1, exp: "Multiplying a string by an integer repeats the string that many times." },
+                { q: "How do you define an empty list?", options: ["x = []", "x = list()", "Both are correct", "x = {}"], a: 2, exp: "Both [] and list() correctly instantiate an empty list." }
+            ],
+            part2: [
+                { q: "What does the keyword 'self' represent in a class method?", options: ["The parent class", "The class itself", "The instance of the class", "A global variable"], a: 2, exp: "'self' is a reference to the current object (instance) being operated on." },
+                { q: "Which dunder method is used to return a readable string representation of an object?", options: ["__print__", "__repr__", "__str__", "__text__"], a: 2, exp: "__str__ is called by the str() built-in function and by the print() function." },
+                { q: "If a function doesn't have a return statement, what does it return?", options: ["0", "False", "None", "It throws an error"], a: 2, exp: "Functions in Python implicitly return None if no explicit return statement is hit." },
+                { q: "What is the data type of *args inside a function?", options: ["List", "Dictionary", "Tuple", "Set"], a: 2, exp: "*args collects positional arguments into an immutable Tuple." },
+                { q: "What is the data type of **kwargs inside a function?", options: ["List", "Dictionary", "Tuple", "Set"], a: 1, exp: "**kwargs collects keyword arguments into a Dictionary." },
+                { q: "Can a Python class inherit from multiple parent classes?", options: ["Yes (Multiple Inheritance)", "No (Single Inheritance only)"], a: 0, exp: "Python supports multiple inheritance (e.g., class Child(Parent1, Parent2):)." },
+                { q: "What is the essential condition to prevent infinite recursion?", options: ["A global variable", "A loop counter", "A base case", "A try-except block"], a: 2, exp: "A base case is the condition where the recursive function stops calling itself." },
+                { q: "What is the worst-case time complexity of Merge Sort?", options: ["O(n)", "O(n log n)", "O(n^2)", "O(log n)"], a: 1, exp: "Merge Sort consistently divides the array, guaranteeing O(n log n) time complexity across best, average, and worst cases." },
+                { q: "What is the space complexity of Bubble Sort?", options: ["O(1)", "O(n)", "O(log n)", "O(n^2)"], a: 0, exp: "Bubble sort only requires a single additional memory space for swapping, making its space complexity O(1)." },
+                { q: "Which algorithm uses a divide-and-conquer strategy?", options: ["Bubble Sort", "Insertion Sort", "Merge Sort", "Selection Sort"], a: 2, exp: "Merge Sort divides the array into halves, sorts them, and merges them back." },
+                { q: "What does Encapsulation mean?", options: ["Hiding internal state and requiring all interaction through methods", "Inheriting from multiple classes", "Writing code in capsules", "Making all variables public"], a: 0, exp: "Encapsulation bundles data and methods, restricting direct external access to the data." },
+                { q: "How do you call a method from a parent class inside a child class?", options: ["parent.method()", "super().method()", "this.method()", "base.method()"], a: 1, exp: "The super() function returns a proxy object that delegates method calls to a parent or sibling class." },
+                { q: "What is a lambda function?", options: ["A complex class method", "An anonymous, inline function", "A recursive function", "A sorting algorithm"], a: 1, exp: "Lambda functions are small anonymous functions defined with the 'lambda' keyword." },
+                { q: "Which data structure is based on LIFO (Last-In, First-Out)?", options: ["Queue", "Stack", "Tree", "Graph"], a: 1, exp: "Stacks operate on a LIFO principle, like a stack of plates." },
+                { q: "Which data structure is based on FIFO (First-In, First-Out)?", options: ["Queue", "Stack", "Linked List", "Array"], a: 0, exp: "Queues operate on a FIFO principle, like a line at a store." },
+                { q: "What does a Node in a singly Linked List contain?", options: ["Just data", "Data and multiple pointers", "Data and a pointer to the next node", "An array of values"], a: 2, exp: "A standard linked list node has the value/data and a reference to the next node." },
+                { q: "What is Polymorphism?", options: ["Hiding variables", "Different classes having methods with the same name that behave differently", "Functions calling themselves", "Creating multiple objects"], a: 1, exp: "Polymorphism allows objects of different types to be treated uniformly through shared interfaces." },
+                { q: "How are private attributes typically denoted in Python conventions?", options: ["With a single leading underscore (e.g., _var)", "With the keyword 'private'", "With double quotes", "By putting them at the end of the class"], a: 0, exp: "A single leading underscore is a convention indicating an attribute is meant for internal use." },
+                { q: "What happens if a recursive function calls itself too many times?", options: ["It gets faster", "RecursionError (Stack Overflow)", "MemoryLeakError", "It loops infinitely without error"], a: 1, exp: "Python throws a RecursionError when the maximum recursion depth is exceeded to prevent stack overflow." },
+                { q: "In Bubble Sort, after the first full pass, what is guaranteed?", options: ["The list is sorted", "The smallest element is at the beginning", "The largest element is at the end", "No elements are sorted"], a: 2, exp: "Bubble sort 'bubbles up' the largest element to the final position in each pass." },
+                { q: "What is the average time complexity of Bubble Sort?", options: ["O(1)", "O(n)", "O(n log n)", "O(n^2)"], a: 3, exp: "Due to nested loops, Bubble Sort compares each element with every other element, leading to O(n^2)." },
+                { q: "How do you pass a variable number of positional arguments to a function?", options: ["def func(args):", "def func(*args):", "def func(**kwargs):", "def func(var_args):"], a: 1, exp: "The * prefix unpacks an iterable into positional arguments." },
+                { q: "What is the primary advantage of a Linked List over an Array?", options: ["Faster random access", "Less memory usage", "Dynamic size and faster insertions/deletions at the ends", "Better cache locality"], a: 2, exp: "Linked lists can easily grow/shrink and insert/delete nodes without shifting contiguous memory." },
+                { q: "If you want to map a function over a list of items, which built-in function is best?", options: ["filter()", "reduce()", "map()", "apply()"], a: 2, exp: "map(function, iterable) applies a function to all items in an input list." },
+                { q: "Which sorting algorithm is generally considered the fastest for large datasets?", options: ["Bubble Sort", "Insertion Sort", "Selection Sort", "Merge Sort"], a: 3, exp: "Merge Sort's O(n log n) complexity scales much better than the O(n^2) algorithms." },
+                { q: "What is the scope of a variable defined inside a function?", options: ["Global", "Local", "Nonlocal", "Class-level"], a: 1, exp: "Variables defined inside a function are local to that function and cannot be accessed outside it." },
+                { q: "How do you define a default value for a function parameter?", options: ["def f(x default 5):", "def f(x = 5):", "def f(x: 5):", "def f(x == 5):"], a: 1, exp: "You use the assignment operator '=' in the parameter list to set a default value." },
+                { q: "What is a Class in Python?", options: ["An instance", "A function", "A blueprint for creating objects", "A dictionary"], a: 2, exp: "Classes define the properties and behaviors that objects instantiated from them will have." },
+                { q: "Which built-in function gets the memory address of an object?", options: ["address()", "loc()", "id()", "mem()"], a: 2, exp: "The id() function returns a unique integer identifying the object's memory address." },
+                { q: "What is an abstract method?", options: ["A method that runs very fast", "A method with no implementation, meant to be overridden in child classes", "A method that handles exceptions", "A private method"], a: 1, exp: "Abstract methods enforce a contract, requiring subclasses to provide the actual implementation." }
+            ],
+            part3: [
+                { q: "What is the standard import alias for pandas?", options: ["import pandas as p", "import pandas as pd", "import pandas as pan", "import pandas"], a: 1, exp: "'import pandas as pd' is the universal community standard." },
+                { q: "Which NumPy function creates an identity matrix?", options: ["np.identity_matrix()", "np.eye()", "np.ones()", "np.matrix()"], a: 1, exp: "np.eye(N) returns a 2-D array with ones on the diagonal and zeros elsewhere." },
+                { q: "In Pandas, what is the difference between .loc and .iloc?", options: [".loc is integer-based, .iloc is label-based", ".loc is for rows, .iloc is for columns", ".loc is label-based, .iloc is integer position-based", "There is no difference"], a: 2, exp: ".loc accesses by row/column labels, while .iloc accesses by integer indices (0, 1, 2...)." },
+                { q: "How do you remove rows with missing (NaN) values in a DataFrame?", options: ["df.delete_nulls()", "df.dropna()", "df.remove_nan()", "df.clean()"], a: 1, exp: "df.dropna() drops rows (or columns) containing any missing values." },
+                { q: "Which function joins two DataFrames horizontally or vertically?", options: ["pd.concat()", "pd.join()", "pd.append()", "All of the above can depending on context"], a: 3, exp: "concat() stacks, join() merges on index, and append() adds rows (though append is deprecated in newer pandas versions in favor of concat)." },
+                { q: "Which Matplotlib function creates a scatter plot?", options: ["plt.points()", "plt.scatter()", "plt.line()", "plt.dots()"], a: 1, exp: "plt.scatter(x, y) creates a scatter plot with varying marker size and/or color." },
+                { q: "What does Seaborn's sns.histplot() primarily show?", options: ["Correlations between variables", "A univariate distribution of data", "Time series trends", "Categorical sums"], a: 1, exp: "Histograms display the distribution of a single continuous numeric variable." },
+                { q: "How do you quickly get summary statistics (mean, min, max, quartiles) in Pandas?", options: ["df.stats()", "df.summary()", "df.describe()", "df.info()"], a: 2, exp: "df.describe() computes a statistical summary of numerical columns." },
+                { q: "How do you group a DataFrame by a column named 'Department'?", options: ["df.group('Department')", "df.groupby('Department')", "df.aggregate('Department')", "df.cluster('Department')"], a: 1, exp: "df.groupby() splits the data into groups for subsequent aggregation." },
+                { q: "Which NumPy array attribute returns a tuple of its dimensions?", options: ["array.size", "array.ndim", "array.shape", "array.len"], a: 2, exp: ".shape returns a tuple representing the size of each dimension (e.g., (rows, columns))." },
+                { q: "How do you read a CSV file into a Pandas DataFrame?", options: ["pd.open_csv('file.csv')", "pd.read_file('file.csv')", "pd.read_csv('file.csv')", "pd.load_csv('file.csv')"], a: 2, exp: "pd.read_csv() is the core function for importing comma-separated values." },
+                { q: "What does df.head(10) do?", options: ["Shows the last 10 rows", "Shows the first 10 columns", "Shows the first 10 rows", "Throws an error"], a: 2, exp: "head(n) returns the first n rows. The default is 5." },
+                { q: "Which Pandas method fills missing values with a specified value?", options: ["df.replace_na(0)", "df.fillna(0)", "df.fill(0)", "df.impute(0)"], a: 1, exp: "fillna() replaces NA/NaN values using the specified method or value." },
+                { q: "What does the 'how' parameter in pd.merge() control?", options: ["How fast the merge happens", "The type of join (left, right, inner, outer)", "How errors are handled", "How data is sorted"], a: 1, exp: "It specifies the SQL-like join logic to apply." },
+                { q: "In NumPy, how do you create an array of zeros with 3 rows and 4 columns?", options: ["np.zeros((3, 4))", "np.zeros(3, 4)", "np.empty(3, 4)", "np.array(0, 3, 4)"], a: 0, exp: "np.zeros() takes a tuple representing the desired shape." },
+                { q: "What does df.info() provide?", options: ["Summary statistics", "Index, datatypes, and non-null values count", "Only the column names", "The first few rows"], a: 1, exp: "info() is useful to quickly check memory usage and look for missing data columns." },
+                { q: "Which Matplotlib command ensures a plot is displayed on the screen?", options: ["plt.draw()", "plt.render()", "plt.display()", "plt.show()"], a: 3, exp: "plt.show() starts an event loop and displays all open figures." },
+                { q: "How do you rename a column 'Old' to 'New' in Pandas?", options: ["df.rename(columns={'Old': 'New'})", "df.columns['Old'] = 'New'", "df.change_col('Old', 'New')", "df['Old'].rename('New')"], a: 0, exp: "The rename() method takes a dictionary mapping old names to new names." },
+                { q: "What is the result of np.arange(0, 10, 2)?", options: ["Array: [0, 1, 2...9]", "Array: [0, 2, 4, 6, 8]", "Array: [2, 4, 6, 8, 10]", "Error"], a: 1, exp: "arange(start, stop, step) generates values from 0 up to (but excluding) 10, in steps of 2." },
+                { q: "Which Seaborn plot is ideal for comparing distributions across categories using a box and whiskers?", options: ["sns.boxplot()", "sns.barplot()", "sns.violinplot()", "sns.scatterplot()"], a: 0, exp: "sns.boxplot() shows quartiles, median, and outliers across categorical variables." },
+                { q: "How do you transpose a Pandas DataFrame?", options: ["df.transpose()", "df.T", "Both A and B", "Neither"], a: 2, exp: "Both .T and .transpose() swap the rows and columns of a DataFrame." },
+                { q: "Which NumPy method changes the dimensions of an array without changing its data?", options: ["array.reshape()", "array.resize()", "array.recast()", "array.transform()"], a: 0, exp: "reshape() gives a new shape to an array as long as the total number of elements remains the same." },
+                { q: "How do you get unique values from a Pandas Series?", options: ["series.distinct()", "series.unique()", "series.set()", "series.drop_duplicates()"], a: 1, exp: ".unique() returns an array of all distinct values in the series." },
+                { q: "What does the 'axis=1' parameter usually imply in Pandas operations (like drop or concat)?", options: ["Operate on rows", "Operate on columns", "Operate on a 3D matrix", "It is ignored"], a: 1, exp: "axis=0 refers to the index (rows), while axis=1 refers to the columns." },
+                { q: "Which Matplotlib function is used to add a title to a plot?", options: ["plt.heading()", "plt.header()", "plt.title()", "plt.name()"], a: 2, exp: "plt.title('My Title') sets the title for the current axes." },
+                { q: "How do you filter a DataFrame 'df' where column 'Age' is greater than 30?", options: ["df.filter(Age > 30)", "df[df['Age'] > 30]", "df.where(Age > 30)", "df.query_age(30)"], a: 1, exp: "This uses boolean indexing to return rows where the condition is True." },
+                { q: "What does the df.apply() function do?", options: ["Applies a function along an axis of the DataFrame", "Applies formatting to strings", "Applies a machine learning model", "Creates a new DataFrame"], a: 0, exp: "apply() executes a specified function against rows or columns." },
+                { q: "In NumPy, what does np.dot(a, b) compute?", options: ["Element-wise multiplication", "Cross product", "Dot product of two arrays", "Outer product"], a: 2, exp: "np.dot performs the algebraic dot product of two arrays (matrix multiplication for 2D)." },
+                { q: "Which Seaborn function draws a matrix of scatterplots for multiple numeric variables?", options: ["sns.heatmap()", "sns.pairplot()", "sns.matrix()", "sns.scatterplot()"], a: 1, exp: "pairplot() creates a grid of Axes showing relationships between all numeric variables." },
+                { q: "How do you reset the index of a DataFrame, moving the current index into a column?", options: ["df.clear_index()", "df.reindex()", "df.reset_index()", "df.new_index()"], a: 2, exp: "reset_index() generates a new standard integer index and pushes the old index to a column." }
+            ]
+        };
+
+        const IconMoon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>;
+        const IconSun = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
+        const IconBook = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>;
+        const IconPlay = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>;
+        const IconLayers = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>;
+        const IconHome = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
+        const IconCheck = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>;
+        const IconX = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>;
+
+        function App() {
+            const [currentView, setCurrentView] = useState('home'); 
+            const [darkMode, setDarkMode] = useState(true); 
+            const [flippedCards, setFlippedCards] = useState({});
+            
+            // Quiz State
+            const [activeQuizPart, setActiveQuizPart] = useState(null);
+            const [currentQIndex, setCurrentQIndex] = useState(0);
+            const [selectedAnswers, setSelectedAnswers] = useState({});
+            const [quizFinished, setQuizFinished] = useState(false);
+            
+            // Revision State
+            const [activeRevisionPart, setActiveRevisionPart] = useState(null);
+
+            useEffect(() => {
+                if (darkMode) document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
+            }, [darkMode]);
+
+            const toggleCard = (index) => setFlippedCards(prev => ({ ...prev, [index]: !prev[index] }));
+
+            const startQuiz = (part) => {
+                setActiveQuizPart(part);
+                setCurrentQIndex(0);
+                setSelectedAnswers({});
+                setQuizFinished(false);
+                setCurrentView('quiz_active');
+            };
+
+            const handleAnswerSelect = (optionIndex) => {
+                if (selectedAnswers[currentQIndex] !== undefined) return; // Prevent changing answer
+                setSelectedAnswers(prev => ({ ...prev, [currentQIndex]: optionIndex }));
+            };
+
+            const nextQuestion = () => {
+                if (currentQIndex < allQuestions[activeQuizPart].length - 1) {
+                    setCurrentQIndex(prev => prev + 1);
+                } else {
+                    setQuizFinished(true);
+                }
+            };
+
+            const renderHome = () => (
+                <div className="fade-in flex flex-col items-center justify-center py-16 px-4">
+                    <div className="dark:bg-darkcard bg-white rounded-3xl shadow-2xl p-10 max-w-5xl w-full text-center border border-slate-200 dark:border-slate-700 relative overflow-hidden">
+                        <div className="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-primary to-accent rounded-full blur-3xl opacity-20 pointer-events-none"></div>
+                        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-gradient-to-tr from-secondary to-blue-500 rounded-full blur-3xl opacity-20 pointer-events-none"></div>
+
+                        <div className="relative z-10">
+                            <h1 className="text-5xl font-extrabold mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-secondary">
+                                Python Mastery Platform
+                            </h1>
+                            <p className="dark:text-slate-400 text-slate-500 mb-12 text-lg max-w-2xl mx-auto">
+                                Supercharge your Data Science skills. Access interactive flashcards, study guides, and rigorous mock exams.
+                            </p>
+                            
+                            <div className="grid md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                                <button onClick={() => setCurrentView('flashcards')} className="group flex flex-col items-center p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl hover:bg-primary/10 dark:hover:bg-primary/20 border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all shadow-sm hover:shadow-lg dark:hover:shadow-primary/20">
+                                    <div className="w-14 h-14 bg-primary/10 dark:bg-primary/20 text-primary rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><IconLayers /></div>
+                                    <h3 className="font-bold text-lg dark:text-slate-100">Flash Cards</h3>
+                                </button>
+                                
+                                <button onClick={() => setCurrentView('study')} className="group flex flex-col items-center p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl hover:bg-amber-500/10 dark:hover:bg-amber-500/20 border border-slate-200 dark:border-slate-700 hover:border-amber-500/50 transition-all shadow-sm hover:shadow-lg dark:hover:shadow-amber-500/20">
+                                    <div className="w-14 h-14 bg-amber-500/10 dark:bg-amber-500/20 text-amber-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><IconBook /></div>
+                                    <h3 className="font-bold text-lg dark:text-slate-100">Study Guide</h3>
+                                </button>
+                                
+                                <button onClick={() => setCurrentView('quiz_menu')} className="group flex flex-col items-center p-6 bg-gradient-to-br from-primary to-accent text-white rounded-2xl hover:opacity-90 transition-all shadow-lg hover:shadow-xl dark:shadow-primary/30 border border-transparent transform hover:-translate-y-1">
+                                    <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><IconPlay /></div>
+                                    <h3 className="font-bold text-lg">Mock Exams</h3>
+                                </button>
+                                
+                                <button onClick={() => setCurrentView('revision_menu')} className="col-span-1 md:col-span-3 group flex flex-col items-center p-6 bg-gradient-to-br from-secondary to-blue-500 text-white rounded-2xl hover:opacity-90 transition-all shadow-lg hover:shadow-xl dark:shadow-secondary/30 border border-transparent transform hover:-translate-y-1 max-w-md mx-auto w-full">
+                                    <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><IconCheck /></div>
+                                    <h3 className="font-bold text-lg">Revision Q&A Bank</h3>
+                                    <p className="text-sm text-white/80 mt-2 font-medium">90 New Questions with Answers</p>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderFlashcards = () => (
+                <div className="fade-in max-w-5xl mx-auto py-8 px-4">
+                    <div className="flex justify-between items-center mb-8">
+                        <div>
+                            <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent mb-2">Interactive Flash Cards</h2>
+                            <p className="dark:text-slate-400 text-slate-500">Tap a card to flip and reveal the answer.</p>
+                        </div>
+                        <button onClick={() => setCurrentView('home')} className="flex items-center text-slate-500 hover:text-primary dark:hover:text-primary bg-white dark:bg-slate-800 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors">
+                            <IconHome /> <span className="ml-2 font-medium">Exit</span>
+                        </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 h-full">
+                        {flashcardsData.map((card, idx) => (
+                            <div key={idx} className={`flip-card h-64 ${flippedCards[idx] ? 'flipped' : ''}`} onClick={() => toggleCard(idx)}>
+                                <div className="flip-card-inner">
+                                    <div className="flip-card-front bg-white dark:bg-darkcard border border-slate-200 dark:border-slate-700">
+                                        <span className="absolute top-4 left-4 text-xs font-bold px-2 py-1 bg-primary/10 text-primary rounded-full uppercase tracking-wider">{card.topic}</span>
+                                        <p className="text-lg font-semibold text-slate-800 dark:text-slate-100 mt-4">{card.front}</p>
+                                    </div>
+                                    <div className="flip-card-back bg-gradient-to-br from-primary to-accent text-white border border-transparent">
+                                        <h4 className="font-bold text-white/80 mb-2 uppercase text-sm tracking-wider">Answer</h4>
+                                        <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed bg-black/20 p-4 rounded-lg w-full">{card.back}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const renderStudyGuide = () => (
+                <div className="fade-in max-w-4xl mx-auto py-8 px-4">
+                    <div className="flex justify-between items-center mb-8">
+                        <div>
+                            <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-500">Comprehensive Study Guide</h2>
+                            <p className="text-slate-500 dark:text-slate-400 mt-2">Core concepts and syntax for Python Data Engineering.</p>
+                        </div>
+                        <button onClick={() => setCurrentView('home')} className="flex items-center text-slate-500 hover:text-primary bg-white dark:bg-slate-800 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <IconHome /> <span className="ml-2 font-medium">Exit</span>
+                        </button>
+                    </div>
+
+                    <div className="space-y-6">
+                        <div className="bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 transition hover:shadow-md hover:border-primary/50">
+                            <h3 className="text-xl font-bold mb-3 text-primary flex items-center"><span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-3">1</span> Python Basics & Control Flow</h3>
+                            <ul className="list-disc pl-12 space-y-2 text-slate-700 dark:text-slate-300">
+                                <li><strong>Variables & Types:</strong> Dynamic typing. <code>type(x)</code> to check type. String casting: <code>str(5)</code>.</li>
+                                <li><strong>Strings:</strong> <code>s.strip()</code> removes whitespace. <code>s.upper()</code> to uppercase. <code>s.replace('a', 'b')</code>.</li>
+                                <li><strong>Control Flow:</strong> <code>if/elif/else</code> for logic. <code>for x in iterable:</code> for loops. <code>while condition:</code> for repeating until false. <code>break</code> exits loops.</li>
+                            </ul>
+                        </div>
+
+                        <div className="bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 transition hover:shadow-md hover:border-secondary/50">
+                            <h3 className="text-xl font-bold mb-3 text-secondary flex items-center"><span className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center mr-3">2</span> Data Structures</h3>
+                            <ul className="list-disc pl-12 space-y-2 text-slate-700 dark:text-slate-300">
+                                <li><strong>Lists:</strong> <code>[]</code>. Ordered, mutable, allows duplicates. <code>append()</code> adds to end.</li>
+                                <li><strong>Tuples:</strong> <code>()</code>. Ordered, <em>immutable</em>, allows duplicates.</li>
+                                <li><strong>Sets:</strong> <code>{}</code>. Unordered, unindexed, <em>no duplicates</em>.</li>
+                                <li><strong>Dictionaries:</strong> <code>{"{"}key: value{"}"}</code>. Key-value pairs. <code>del d['k']</code> to remove.</li>
+                                <li><strong>Advanced:</strong> Stacks (LIFO), Queues (FIFO), Linked Lists (Nodes with data + pointers).</li>
+                            </ul>
+                        </div>
+
+                        <div className="bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 transition hover:shadow-md hover:border-accent/50">
+                            <h3 className="text-xl font-bold mb-3 text-accent flex items-center"><span className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center mr-3">3</span> Functions, OOP & Algorithms</h3>
+                            <ul className="list-disc pl-12 space-y-2 text-slate-700 dark:text-slate-300">
+                                <li><strong>Functions:</strong> Defined with <code>def</code>. Default params allowed. <code>*args</code> (tuple) and <code>**kwargs</code> (dict) for variable arguments.</li>
+                                <li><strong>OOP:</strong> <code>class</code> keyword. <code>__init__</code> is constructor. <code>self</code> refers to instance. Inheritance allows child classes to gain parent attributes.</li>
+                                <li><strong>Recursion:</strong> Function calling itself. Must have a base case.</li>
+                                <li><strong>Sorting:</strong> Bubble Sort is O(n^2). Merge Sort (divide & conquer) is O(n log n).</li>
+                            </ul>
+                        </div>
+
+                        <div className="bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 transition hover:shadow-md hover:border-blue-500/50">
+                            <h3 className="text-xl font-bold mb-3 text-blue-500 flex items-center"><span className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center mr-3">4</span> NumPy, Pandas, Matplotlib</h3>
+                            <ul className="list-disc pl-12 space-y-2 text-slate-700 dark:text-slate-300">
+                                <li><strong>NumPy:</strong> <code>np.array()</code>. <code>ndim</code>, <code>shape</code>. Fast mathematical operations. <code>np.intersect1d</code> for common items.</li>
+                                <li><strong>Pandas:</strong> <code>pd.read_csv()</code>, <code>df.head()</code>, <code>df.describe()</code>, <code>df.dropna()</code>, <code>df.fillna()</code>, <code>pd.merge()</code> (joins).</li>
+                                <li><strong>Visualization:</strong> <code>plt.plot()</code> for lines, <code>sns.histplot()</code> for distributions. <code>plt.show()</code> to render.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderQuizMenu = () => (
+                <div className="fade-in max-w-4xl mx-auto py-12 px-4 text-center">
+                    <h2 className="text-4xl font-extrabold mb-4 text-slate-800 dark:text-white">Sectional Mock Exams</h2>
+                    <p className="text-lg text-slate-500 dark:text-slate-400 mb-10">Select a module to test your knowledge. Each exam contains 30 questions.</p>
+                    
+                    <div className="grid md:grid-cols-3 gap-6">
+                        <div onClick={() => startQuiz('part1')} className="cursor-pointer bg-white dark:bg-darkcard p-8 rounded-2xl shadow-md hover:shadow-xl border border-slate-200 dark:border-slate-700 hover:border-primary transition-all">
+                            <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4"><IconLayers /></div>
+                            <h3 className="text-xl font-bold mb-2">Part 1</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm">Core Python, Syntax, and Data Structures</p>
+                        </div>
+                        <div onClick={() => startQuiz('part2')} className="cursor-pointer bg-white dark:bg-darkcard p-8 rounded-2xl shadow-md hover:shadow-xl border border-slate-200 dark:border-slate-700 hover:border-secondary transition-all">
+                            <div className="w-16 h-16 bg-secondary/10 text-secondary rounded-full flex items-center justify-center mx-auto mb-4"><IconBook /></div>
+                            <h3 className="text-xl font-bold mb-2">Part 2</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm">Functions, OOP, and Algorithms</p>
+                        </div>
+                        <div onClick={() => startQuiz('part3')} className="cursor-pointer bg-white dark:bg-darkcard p-8 rounded-2xl shadow-md hover:shadow-xl border border-slate-200 dark:border-slate-700 hover:border-accent transition-all">
+                            <div className="w-16 h-16 bg-accent/10 text-accent rounded-full flex items-center justify-center mx-auto mb-4"><IconPlay /></div>
+                            <h3 className="text-xl font-bold mb-2">Part 3</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm">NumPy, Pandas, & Visualization</p>
+                        </div>
+                    </div>
+                    <button onClick={() => setCurrentView('home')} className="mt-12 px-6 py-2 rounded-lg bg-slate-200 dark:bg-slate-800 font-bold hover:bg-slate-300 dark:hover:bg-slate-700">Back to Dashboard</button>
+                </div>
+            );
+
+            const renderActiveQuiz = () => {
+                const questions = allQuestions[activeQuizPart];
+                const currentQ = questions[currentQIndex];
+                const isAnswered = selectedAnswers[currentQIndex] !== undefined;
+                const isCorrect = isAnswered && selectedAnswers[currentQIndex] === currentQ.a;
+
+                // Calculate current score dynamically
+                let currentScore = 0;
+                Object.keys(selectedAnswers).forEach(k => {
+                    if (selectedAnswers[k] === questions[k].a) currentScore++;
+                });
+
+                // Handle Exam Completion State
+                if (quizFinished) {
+                    const pct = Math.round((currentScore / questions.length) * 100);
+                    return (
+                        <div className="fade-in max-w-2xl mx-auto py-16 px-4 text-center">
+                            <div className="bg-white dark:bg-darkcard rounded-3xl p-10 shadow-2xl border border-slate-200 dark:border-slate-700">
+                                <h2 className="text-3xl font-extrabold mb-4 text-slate-800 dark:text-white">Exam Complete!</h2>
+                                <div className="text-6xl font-black text-primary mb-2">{currentScore} / {questions.length}</div>
+                                <p className="text-xl font-medium text-slate-500 mb-8">You scored {pct}%</p>
+                                <button onClick={() => setCurrentView('quiz_menu')} className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-600 transition-colors">Return to Exams</button>
+                            </div>
+                        </div>
+                    );
+                }
+
+                // Handle Active Question State
+                return (
+                    <div className="fade-in max-w-3xl mx-auto py-8 px-4">
+                        <div className="flex justify-between items-center mb-4">
+                            <div>
+                                <span className="font-bold text-slate-500 uppercase tracking-wider text-sm">Question {currentQIndex + 1} of {questions.length}</span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div className="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-1.5 rounded-full flex items-center shadow-sm">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-2">Score</span>
+                                    <span className="font-black text-emerald-500 dark:text-emerald-400 text-lg">{currentScore}</span>
+                                    <span className="text-slate-400 font-bold mx-1">/</span>
+                                    <span className="text-slate-500 font-bold">{questions.length}</span>
+                                </div>
+                                <button onClick={() => setCurrentView('quiz_menu')} className="text-sm font-bold text-red-500 hover:text-red-600 bg-red-100 dark:bg-red-900/30 px-3 py-1.5 rounded-lg transition-colors">Quit Exam</button>
+                            </div>
+                        </div>
+                        
+                        <div className="flex gap-1 mb-8">
+                            {questions.map((_, idx) => {
+                                let segmentClass = "h-2.5 flex-1 rounded-full transition-all duration-300 ";
+                                if (selectedAnswers[idx] !== undefined) {
+                                    segmentClass += selectedAnswers[idx] === questions[idx].a 
+                                        ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" 
+                                        : "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]";
+                                } else if (idx === currentQIndex) {
+                                    segmentClass += "bg-primary animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.6)] scale-110";
+                                } else {
+                                    segmentClass += "bg-slate-200 dark:bg-slate-700";
+                                }
+                                return <div key={idx} className={segmentClass}></div>;
+                            })}
+                        </div>
+
+                        <div className="bg-white dark:bg-darkcard rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 p-8 mb-6">
+                            <h3 className="text-xl font-bold mb-6 text-slate-800 dark:text-slate-100">{currentQ.q}</h3>
+                            <div className="space-y-3">
+                                {currentQ.options.map((opt, idx) => {
+                                    let btnClass = "w-full text-left p-4 rounded-xl border-2 transition-all font-medium ";
+                                    if (!isAnswered) {
+                                        btnClass += "border-slate-200 dark:border-slate-600 hover:border-primary dark:hover:border-primary bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200";
+                                    } else {
+                                        if (idx === currentQ.a) {
+                                            btnClass += "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400"; // Correct answer is always green
+                                        } else if (idx === selectedAnswers[currentQIndex]) {
+                                            btnClass += "border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400"; // Selected wrong answer is red
+                                        } else {
+                                            btnClass += "border-slate-200 dark:border-slate-700 opacity-50 bg-slate-50 dark:bg-slate-800"; // Unselected wrong answers
+                                        }
+                                    }
+
+                                    return (
+                                        <button key={idx} onClick={() => handleAnswerSelect(idx)} className={btnClass} disabled={isAnswered}>
+                                            <div className="flex items-center justify-between">
+                                                <span>{opt}</span>
+                                                {isAnswered && idx === currentQ.a && <span className="text-green-500"><IconCheck /></span>}
+                                                {isAnswered && idx === selectedAnswers[currentQIndex] && idx !== currentQ.a && <span className="text-red-500"><IconX /></span>}
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {isAnswered && (
+                                <div className={`mt-6 p-4 rounded-xl border ${isCorrect ? 'border-green-200 bg-green-50 dark:bg-green-900/10' : 'border-red-200 bg-red-50 dark:bg-red-900/10'}`}>
+                                    <h4 className={`font-bold mb-1 ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                                        {isCorrect ? 'Correct!' : 'Incorrect'}
+                                    </h4>
+                                    <p className="text-slate-700 dark:text-slate-300 text-sm">{currentQ.exp}</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {isAnswered && (
+                            <button onClick={nextQuestion} className="w-full bg-primary text-white font-bold py-4 rounded-xl hover:bg-indigo-600 transition-colors shadow-md text-lg">
+                                {currentQIndex < questions.length - 1 ? 'Next Question →' : 'Finish Exam'}
+                            </button>
+                        )}
+                    </div>
+                );
+            };
+
+            const renderRevisionMenu = () => (
+                <div className="fade-in max-w-4xl mx-auto py-12 px-4 text-center">
+                    <h2 className="text-4xl font-extrabold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-secondary to-blue-500">Revision Q&A Bank</h2>
+                    <p className="text-lg text-slate-500 dark:text-slate-400 mb-10">Review 90 brand new questions with their correct answers and explanations clearly displayed.</p>
+                    
+                    <div className="grid md:grid-cols-3 gap-6">
+                        <div onClick={() => { setActiveRevisionPart('part1'); setCurrentView('revision_viewer'); }} className="cursor-pointer bg-white dark:bg-darkcard p-8 rounded-2xl shadow-md hover:shadow-xl border border-slate-200 dark:border-slate-700 hover:border-secondary transition-all">
+                            <div className="w-16 h-16 bg-secondary/10 text-secondary rounded-full flex items-center justify-center mx-auto mb-4"><IconLayers /></div>
+                            <h3 className="text-xl font-bold mb-2">Part 1</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm">Python Core & Data Structures</p>
+                        </div>
+                        <div onClick={() => { setActiveRevisionPart('part2'); setCurrentView('revision_viewer'); }} className="cursor-pointer bg-white dark:bg-darkcard p-8 rounded-2xl shadow-md hover:shadow-xl border border-slate-200 dark:border-slate-700 hover:border-secondary transition-all">
+                            <div className="w-16 h-16 bg-secondary/10 text-secondary rounded-full flex items-center justify-center mx-auto mb-4"><IconBook /></div>
+                            <h3 className="text-xl font-bold mb-2">Part 2</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm">Functions, OOP & Algorithms</p>
+                        </div>
+                        <div onClick={() => { setActiveRevisionPart('part3'); setCurrentView('revision_viewer'); }} className="cursor-pointer bg-white dark:bg-darkcard p-8 rounded-2xl shadow-md hover:shadow-xl border border-slate-200 dark:border-slate-700 hover:border-secondary transition-all">
+                            <div className="w-16 h-16 bg-secondary/10 text-secondary rounded-full flex items-center justify-center mx-auto mb-4"><IconFile /></div>
+                            <h3 className="text-xl font-bold mb-2">Part 3</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm">Data Ecosystem (NumPy, Pandas...)</p>
+                        </div>
+                    </div>
+                    <button onClick={() => setCurrentView('home')} className="mt-12 px-6 py-2 rounded-lg bg-slate-200 dark:bg-slate-800 font-bold hover:bg-slate-300 dark:hover:bg-slate-700">Back to Dashboard</button>
+                </div>
+            );
+
+            const renderRevisionViewer = () => {
+                const questions = revisionQuestions[activeRevisionPart];
+                return (
+                    <div className="fade-in max-w-4xl mx-auto py-8 px-4">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                            <div>
+                                <h2 className="text-2xl font-extrabold text-slate-800 dark:text-white">Revision: {activeRevisionPart === 'part1' ? 'Core Python' : activeRevisionPart === 'part2' ? 'OOP & Algos' : 'Data Ecosystem'}</h2>
+                                <p className="text-sm text-slate-500 font-medium mt-1">30 Questions & Answers</p>
+                            </div>
+                            <button onClick={() => setCurrentView('revision_menu')} className="flex items-center text-white bg-slate-800 dark:bg-slate-600 hover:bg-slate-700 px-5 py-2.5 rounded-xl font-bold transition-colors">
+                                <IconX /> <span className="ml-2">Close Revision</span>
+                            </button>
+                        </div>
+                        
+                        <div className="space-y-6">
+                            {questions.map((q, idx) => (
+                                <div key={idx} className="bg-white dark:bg-darkcard rounded-2xl p-6 shadow-md border-l-4 border-emerald-500">
+                                    <h4 className="font-bold text-lg mb-4 text-slate-800 dark:text-slate-100">
+                                        <span className="text-emerald-500 mr-2">Q{idx + 1}.</span> {q.q}
+                                    </h4>
+                                    
+                                    <div className="mb-4">
+                                        {q.options.map((opt, optIdx) => (
+                                            <div key={optIdx} className={`p-3 rounded-xl border mb-2 text-sm font-medium ${optIdx === q.a ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-900/20 dark:border-emerald-800/50 dark:text-emerald-300' : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 opacity-60'}`}>
+                                                <div className="flex items-center">
+                                                    {optIdx === q.a && <span className="mr-2"><IconCheck /></span>}
+                                                    {opt}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    
+                                    <div className="bg-slate-100 dark:bg-slate-800/80 p-4 rounded-xl text-sm text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                        <strong className="text-slate-900 dark:text-white">Explanation:</strong> {q.exp}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    <header className="bg-white dark:bg-darkcard border-b border-slate-200 dark:border-slate-800 py-4 px-6 shadow-sm sticky top-0 z-50">
+                        <div className="max-w-6xl mx-auto flex justify-between items-center">
+                            <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setCurrentView('home')}>
+                                <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-md">Py</div>
+                                <span className="hidden sm:inline font-extrabold text-xl tracking-tight text-slate-800 dark:text-white">Data<span className="text-primary">Eng</span></span>
+                            </div>
+                            <nav className="flex items-center space-x-6 text-sm font-bold text-slate-500 dark:text-slate-400">
+                                <button onClick={() => setCurrentView('home')} className={`hover:text-primary transition-colors ${currentView === 'home' ? 'text-primary' : ''}`}>Dashboard</button>
+                                <button onClick={() => setCurrentView('flashcards')} className={`hover:text-primary transition-colors ${currentView === 'flashcards' ? 'text-primary' : ''}`}>Flash Cards</button>
+                                <button onClick={() => setCurrentView('study')} className={`hover:text-primary transition-colors ${currentView === 'study' ? 'text-primary' : ''}`}>Study Guide</button>
+                                
+                                <button onClick={() => setDarkMode(!darkMode)} className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors ml-4 border border-slate-200 dark:border-slate-700">
+                                    {darkMode ? <IconSun /> : <IconMoon />}
+                                </button>
+                            </nav>
+                        </div>
+                    </header>
+
+                    <main className="flex-grow">
+                        {currentView === 'home' && renderHome()}
+                        {currentView === 'flashcards' && renderFlashcards()}
+                        {currentView === 'study' && renderStudyGuide()}
+                        {currentView === 'quiz_menu' && renderQuizMenu()}
+                        {currentView === 'quiz_active' && renderActiveQuiz()}
+                        {currentView === 'revision_menu' && renderRevisionMenu()}
+                        {currentView === 'revision_viewer' && renderRevisionViewer()}
+                    </main>
+                    
+                    <footer className="bg-white dark:bg-darkcard border-t border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-500 py-6 text-center text-sm">
+                        <p>© 2026 Python Data Engineering Platform. Featuring Dark Mode & Interactive Modules.</p>
+                    </footer>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
