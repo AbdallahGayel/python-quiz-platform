@@ -169,36 +169,36 @@
                 { q: "What is the primary disadvantage of recursion?", options: ["It requires too much code", "It is always slower than loops", "It can lead to Stack Overflow errors if the recursion depth is too high", "It cannot return values"], a: 2, exp: "Each recursive call consumes stack memory. Too many calls exceed the maximum recursion depth." }
             ],
             part3: [
-                { q: "What does NumPy stand for?", options: ["Number Python", "Numerical Python", "Numerous Python", "Nothing, it's just a name"], a: 1, exp: "NumPy stands for Numerical Python." },
-                { q: "How do you create a 1D array in NumPy?", options: ["np.array(1, 2, 3)", "np.create([1, 2, 3])", "np.array([1, 2, 3])", "np.list([1, 2, 3])"], a: 2, exp: "You pass a list to np.array() to create an array." },
-                { q: "How do you check the number of dimensions of a NumPy array?", options: ["arr.dims", "arr.ndim", "arr.shape", "arr.size"], a: 1, exp: "The ndim attribute returns the number of dimensions." },
-                { q: "What is the correct syntax to print the first item of a NumPy array arr?", options: ["print(arr[1])", "print(arr(0))", "print(arr[0])", "print(arr.get(0))"], a: 2, exp: "Arrays are zero-indexed, so arr[0] gets the first item." },
-                { q: "Which NumPy function returns an array of evenly spaced values over a specified interval (using step size)?", options: ["np.linspace()", "np.arange()", "np.interval()", "np.space()"], a: 1, exp: "np.arange(start, stop, step) uses a step size." },
-                { q: "How do you find the common values between two NumPy arrays a and b?", options: ["np.common(a, b)", "np.intersect1d(a, b)", "np.match(a, b)", "np.join(a, b)"], a: 1, exp: "np.intersect1d finds the intersection of two arrays." },
-                { q: "What does Pandas stand for?", options: ["Panel Data", "Python Data Analysis", "Both A and B", "Neither"], a: 2, exp: "Pandas is derived from 'Panel Data' and is used for Python Data Analysis." },
-                { q: "Which method is used to read a CSV file into a Pandas DataFrame?", options: ["pd.read_csv('file.csv')", "pd.open_csv('file.csv')", "pd.load_csv('file.csv')", "pd.get_csv('file.csv')"], a: 0, exp: "pd.read_csv() is the standard function for reading CSVs." },
-                { q: "How do you view the first 5 rows of a DataFrame df?", options: ["df.first(5)", "df.top()", "df.head()", "df.show(5)"], a: 2, exp: "df.head() returns the first 5 rows by default." },
-                { q: "Which method returns a summary of statistics for numeric columns in a DataFrame?", options: ["df.summary()", "df.stats()", "df.describe()", "df.info()"], a: 2, exp: "df.describe() provides count, mean, std, min, max, and quartiles." },
-                { q: "How do you remove rows with missing values (NaN) in a DataFrame?", options: ["df.remove_nan()", "df.drop_null()", "df.dropna()", "df.clean()"], a: 2, exp: "df.dropna() removes rows (or columns) containing missing values." },
-                { q: "How do you fill missing values (NaN) with 0 in a DataFrame?", options: ["df.fill(0)", "df.replace_nan(0)", "df.fillna(0)", "df.set_null(0)"], a: 2, exp: "df.fillna() replaces NA/NaN values with a specified value." },
-                { q: "Which method removes duplicate rows from a DataFrame?", options: ["df.unique()", "df.remove_duplicates()", "df.drop_duplicates()", "df.clean_duplicates()"], a: 2, exp: "df.drop_duplicates() removes duplicate rows." },
-                { q: "How do you access a specific column named 'Age' in a DataFrame df?", options: ["df.Age", "df['Age']", "Both A and B", "Neither"], a: 2, exp: "You can use dot notation (if the name has no spaces) or bracket notation." },
-                { q: "Which method is used to group data based on a column in Pandas?", options: ["df.group()", "df.groupby()", "df.aggregate()", "df.cluster()"], a: 1, exp: "df.groupby() splits the data into groups based on some criteria." },
-                { q: "What does pd.concat([df1, df2]) do?", options: ["Joins data based on matching columns (like SQL join)", "Appends rows of df2 below df1", "Multiplies the DataFrames", "Creates a MultiIndex"], a: 1, exp: "concat() stacks DataFrames vertically by default." },
-                { q: "Which Pandas function is similar to a SQL INNER JOIN?", options: ["pd.concat()", "pd.append()", "pd.merge()", "pd.join()"], a: 2, exp: "pd.merge() performs database-style join operations." },
-                { q: "What library is Matplotlib primarily based on/designed to work with?", options: ["Django", "Flask", "NumPy", "TensorFlow"], a: 2, exp: "Matplotlib works closely with NumPy arrays." },
-                { q: "Which Matplotlib function creates a basic line plot?", options: ["plt.line()", "plt.plot()", "plt.draw()", "plt.graph()"], a: 1, exp: "plt.plot() is the primary function for line graphs." },
-                { q: "How do you add a title to a Matplotlib plot?", options: ["plt.title('My Title')", "plt.header('My Title')", "plt.name('My Title')", "plt.set_title('My Title')"], a: 0, exp: "plt.title() sets the title for the current axes." },
-                { q: "Which Seaborn function is best for visualizing the distribution of a single numerical variable?", options: ["sns.scatterplot()", "sns.histplot()", "sns.heatmap()", "sns.barplot()"], a: 1, exp: "sns.histplot() plots univariate distributions." },
-                { q: "What is the advantage of using Seaborn over raw Matplotlib?", options: ["It is faster", "It requires fewer lines of code to create attractive statistical graphics", "It handles 3D rendering better", "It is built in C++"], a: 1, exp: "Seaborn provides a high-level interface for drawing attractive statistical graphics." },
-                { q: "If df is a DataFrame, what does df.shape return?", options: ["Number of columns", "Number of rows", "A tuple of (rows, columns)", "Total number of cells"], a: 2, exp: "shape returns a tuple representing the dimensionality of the DataFrame." },
-                { q: "How do you change the data type of a Pandas Series to integer?", options: ["series.int()", "series.to_int()", "series.astype(int)", "series.cast(int)"], a: 2, exp: "astype() is used to cast a pandas object to a specified dtype." },
-                { q: "In NumPy, what is the output of np.zeros((2,3))?", options: ["A 2x3 array of ones", "A 3x2 array of zeros", "A 2x3 array of zeros", "An error"], a: 2, exp: "It creates a matrix with 2 rows and 3 columns filled with 0.0." },
-                { q: "How do you transpose a DataFrame df?", options: ["df.transpose()", "df.T", "Both A and B", "Neither"], a: 2, exp: "Both .T and .transpose() swap rows and columns." },
-                { q: "Which NumPy method changes the shape of an array without changing its data?", options: ["arr.resize()", "arr.reshape()", "arr.recast()", "arr.change()"], a: 1, exp: "reshape() gives a new shape to an array without changing its data." },
-                { q: "What does the df.info() method provide?", options: ["Summary statistics (mean, std)", "Column names, non-null counts, and data types", "Only the column names", "The first 10 rows"], a: 1, exp: "info() prints information about a DataFrame including the index dtype and columns, non-null values and memory usage." },
-                { q: "In Matplotlib, how do you display the plot on the screen?", options: ["plt.display()", "plt.render()", "plt.show()", "plt.view()"], a: 2, exp: "plt.show() displays all open figures." },
-                { q: "Which Seaborn function shows the relationship between two variables, often with a regression line?", options: ["sns.boxplot()", "sns.pairplot()", "sns.lmplot()", "sns.violinplot()"], a: 2, exp: "lmplot() plots data and regression model fits across a FacetGrid." }
+                { q: "What is the standard import alias for pandas?", options: ["import pandas as p", "import pandas as pd", "import pandas as pan", "import pandas"], a: 1, exp: "'import pandas as pd' is the universal community standard." },
+                { q: "Which NumPy function creates an identity matrix?", options: ["np.identity_matrix()", "np.eye()", "np.ones()", "np.matrix()"], a: 1, exp: "np.eye(N) returns a 2-D array with ones on the diagonal and zeros elsewhere." },
+                { q: "In Pandas, what is the difference between .loc and .iloc?", options: [".loc is integer-based, .iloc is label-based", ".loc is for rows, .iloc is for columns", ".loc is label-based, .iloc is integer position-based", "There is no difference"], a: 2, exp: ".loc accesses by row/column labels, while .iloc accesses by integer indices (0, 1, 2...)." },
+                { q: "How do you remove rows with missing (NaN) values in a DataFrame?", options: ["df.delete_nulls()", "df.dropna()", "df.remove_nan()", "df.clean()"], a: 1, exp: "df.dropna() drops rows (or columns) containing any missing values." },
+                { q: "Which function joins two DataFrames horizontally or vertically?", options: ["pd.concat()", "pd.join()", "pd.append()", "All of the above can depending on context"], a: 3, exp: "concat() stacks, join() merges on index, and append() adds rows (though append is deprecated in newer pandas versions in favor of concat)." },
+                { q: "Which Matplotlib function creates a scatter plot?", options: ["plt.points()", "plt.scatter()", "plt.line()", "plt.dots()"], a: 1, exp: "plt.scatter(x, y) creates a scatter plot with varying marker size and/or color." },
+                { q: "What does Seaborn's sns.histplot() primarily show?", options: ["Correlations between variables", "A univariate distribution of data", "Time series trends", "Categorical sums"], a: 1, exp: "Histograms display the distribution of a single continuous numeric variable." },
+                { q: "How do you quickly get summary statistics (mean, min, max, quartiles) in Pandas?", options: ["df.stats()", "df.summary()", "df.describe()", "df.info()"], a: 2, exp: "df.describe() computes a statistical summary of numerical columns." },
+                { q: "How do you group a DataFrame by a column named 'Department'?", options: ["df.group('Department')", "df.groupby('Department')", "df.aggregate('Department')", "df.cluster('Department')"], a: 1, exp: "df.groupby() splits the data into groups for subsequent aggregation." },
+                { q: "Which NumPy array attribute returns a tuple of its dimensions?", options: ["array.size", "array.ndim", "array.shape", "array.len"], a: 2, exp: ".shape returns a tuple representing the size of each dimension (e.g., (rows, columns))." },
+                { q: "How do you read a CSV file into a Pandas DataFrame?", options: ["pd.open_csv('file.csv')", "pd.read_file('file.csv')", "pd.read_csv('file.csv')", "pd.load_csv('file.csv')"], a: 2, exp: "pd.read_csv() is the core function for importing comma-separated values." },
+                { q: "What does df.head(10) do?", options: ["Shows the last 10 rows", "Shows the first 10 columns", "Shows the first 10 rows", "Throws an error"], a: 2, exp: "head(n) returns the first n rows. The default is 5." },
+                { q: "Which Pandas method fills missing values with a specified value?", options: ["df.replace_na(0)", "df.fillna(0)", "df.fill(0)", "df.impute(0)"], a: 1, exp: "fillna() replaces NA/NaN values using the specified method or value." },
+                { q: "What does the 'how' parameter in pd.merge() control?", options: ["How fast the merge happens", "The type of join (left, right, inner, outer)", "How errors are handled", "How data is sorted"], a: 1, exp: "It specifies the SQL-like join logic to apply." },
+                { q: "In NumPy, how do you create an array of zeros with 3 rows and 4 columns?", options: ["np.zeros((3, 4))", "np.zeros(3, 4)", "np.empty(3, 4)", "np.array(0, 3, 4)"], a: 0, exp: "np.zeros() takes a tuple representing the desired shape." },
+                { q: "What does df.info() provide?", options: ["Summary statistics", "Index, datatypes, and non-null values count", "Only the column names", "The first few rows"], a: 1, exp: "info() is useful to quickly check memory usage and look for missing data columns." },
+                { q: "Which Matplotlib command ensures a plot is displayed on the screen?", options: ["plt.draw()", "plt.render()", "plt.display()", "plt.show()"], a: 3, exp: "plt.show() starts an event loop and displays all open figures." },
+                { q: "How do you rename a column 'Old' to 'New' in Pandas?", options: ["df.rename(columns={'Old': 'New'})", "df.columns['Old'] = 'New'", "df.change_col('Old', 'New')", "df['Old'].rename('New')"], a: 0, exp: "The rename() method takes a dictionary mapping old names to new names." },
+                { q: "What is the result of np.arange(0, 10, 2)?", options: ["Array: [0, 1, 2...9]", "Array: [0, 2, 4, 6, 8]", "Array: [2, 4, 6, 8, 10]", "Error"], a: 1, exp: "arange(start, stop, step) generates values from 0 up to (but excluding) 10, in steps of 2." },
+                { q: "Which Seaborn plot is ideal for comparing distributions across categories using a box and whiskers?", options: ["sns.boxplot()", "sns.barplot()", "sns.violinplot()", "sns.scatterplot()"], a: 0, exp: "sns.boxplot() shows quartiles, median, and outliers across categorical variables." },
+                { q: "How do you transpose a Pandas DataFrame?", options: ["df.transpose()", "df.T", "Both A and B", "Neither"], a: 2, exp: "Both .T and .transpose() swap the rows and columns of a DataFrame." },
+                { q: "Which NumPy method changes the dimensions of an array without changing its data?", options: ["array.reshape()", "array.resize()", "array.recast()", "array.transform()"], a: 0, exp: "reshape() gives a new shape to an array as long as the total number of elements remains the same." },
+                { q: "How do you get unique values from a Pandas Series?", options: ["series.distinct()", "series.unique()", "series.set()", "series.drop_duplicates()"], a: 1, exp: ".unique() returns an array of all distinct values in the series." },
+                { q: "What does the 'axis=1' parameter usually imply in Pandas operations (like drop or concat)?", options: ["Operate on rows", "Operate on columns", "Operate on a 3D matrix", "It is ignored"], a: 1, exp: "axis=0 refers to the index (rows), while axis=1 refers to the columns." },
+                { q: "Which Matplotlib function is used to add a title to a plot?", options: ["plt.heading()", "plt.header()", "plt.title()", "plt.name()"], a: 2, exp: "plt.title('My Title') sets the title for the current axes." },
+                { q: "How do you filter a DataFrame 'df' where column 'Age' is greater than 30?", options: ["df.filter(Age > 30)", "df[df['Age'] > 30]", "df.where(Age > 30)", "df.query_age(30)"], a: 1, exp: "This uses boolean indexing to return rows where the condition is True." },
+                { q: "What does the df.apply() function do?", options: ["Applies a function along an axis of the DataFrame", "Applies formatting to strings", "Applies a machine learning model", "Creates a new DataFrame"], a: 0, exp: "apply() executes a specified function against rows or columns." },
+                { q: "In NumPy, what does np.dot(a, b) compute?", options: ["Element-wise multiplication", "Cross product", "Dot product of two arrays", "Outer product"], a: 2, exp: "np.dot performs the algebraic dot product of two arrays (matrix multiplication for 2D)." },
+                { q: "Which Seaborn function draws a matrix of scatterplots for multiple numeric variables?", options: ["sns.heatmap()", "sns.pairplot()", "sns.matrix()", "sns.scatterplot()"], a: 1, exp: "pairplot() creates a grid of Axes showing relationships between all numeric variables." },
+                { q: "How do you reset the index of a DataFrame, moving the current index into a column?", options: ["df.clear_index()", "df.reindex()", "df.reset_index()", "df.new_index()"], a: 2, exp: "reset_index() generates a new standard integer index and pushes the old index to a column." }
             ]
         };
 
@@ -309,19 +309,18 @@
         const IconHome = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
         const IconCheck = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>;
         const IconX = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>;
+        const IconFile = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>;
 
         function App() {
             const [currentView, setCurrentView] = useState('home'); 
             const [darkMode, setDarkMode] = useState(true); 
             const [flippedCards, setFlippedCards] = useState({});
             
-            // Quiz State
             const [activeQuizPart, setActiveQuizPart] = useState(null);
             const [currentQIndex, setCurrentQIndex] = useState(0);
             const [selectedAnswers, setSelectedAnswers] = useState({});
             const [quizFinished, setQuizFinished] = useState(false);
             
-            // Revision State
             const [activeRevisionPart, setActiveRevisionPart] = useState(null);
 
             useEffect(() => {
@@ -340,7 +339,7 @@
             };
 
             const handleAnswerSelect = (optionIndex) => {
-                if (selectedAnswers[currentQIndex] !== undefined) return; // Prevent changing answer
+                if (selectedAnswers[currentQIndex] !== undefined) return;
                 setSelectedAnswers(prev => ({ ...prev, [currentQIndex]: optionIndex }));
             };
 
@@ -511,13 +510,11 @@
                 const isAnswered = selectedAnswers[currentQIndex] !== undefined;
                 const isCorrect = isAnswered && selectedAnswers[currentQIndex] === currentQ.a;
 
-                // Calculate current score dynamically
                 let currentScore = 0;
                 Object.keys(selectedAnswers).forEach(k => {
                     if (selectedAnswers[k] === questions[k].a) currentScore++;
                 });
 
-                // Handle Exam Completion State
                 if (quizFinished) {
                     const pct = Math.round((currentScore / questions.length) * 100);
                     return (
@@ -532,7 +529,6 @@
                     );
                 }
 
-                // Handle Active Question State
                 return (
                     <div className="fade-in max-w-3xl mx-auto py-8 px-4">
                         <div className="flex justify-between items-center mb-4">
